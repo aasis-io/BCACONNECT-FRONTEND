@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
+import toast from "react-hot-toast";
 import { FiEye, FiEyeOff } from "react-icons/fi";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import toast from "react-hot-toast";
 import axiosInstance from "../../api/AxiosInstance.js";
-import GoogleLogo from "../../assets/google.svg";
 import GitHubLogo from "../../assets/github.svg"; // Make sure to have a GitHub logo in this path
+import GoogleLogo from "../../assets/google.svg";
 
 const Login = () => {
   const location = useLocation();
@@ -12,7 +12,7 @@ const Login = () => {
 
   const [message, setMessage] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [formData, setFormData] = useState({ userName: "", password: "" });
+  const [formData, setFormData] = useState({ email: "", password: "" });
 
   // Show message from location state (e.g. after registration)
   useEffect(() => {
@@ -41,14 +41,14 @@ const Login = () => {
     localStorage.removeItem("jwt");
 
     try {
-      const response = await axiosInstance.post("/auth/signIn", {
-        userName: formData.userName,
+      const response = await axiosInstance.post("/auth/login", {
+        email: formData.email,
         password: formData.password,
       });
 
       localStorage.setItem("jwt", response.data.data);
       toast.success("Login Successful");
-      navigate("/dashboard", { state: { username: formData.userName } });
+      navigate("/dashboard", { state: { email: formData.email } });
     } catch (error) {
       const status = error.response?.status;
       const backendError =
@@ -59,9 +59,9 @@ const Login = () => {
             "Unknown error";
 
       if (backendError === "Email not verified") {
-        navigate(`/resend-email?email=${encodeURIComponent(formData.userName)}`);
+        navigate(`/resend-email?email=${encodeURIComponent(formData.email)}`);
       } else if (status === 400 || status === 401) {
-        toast.error(backendError || "Invalid username or password.");
+        toast.error(backendError || "Invalid email or password.");
       } else if (status === 404) {
         toast.error(backendError || "User not found.");
       } else {
@@ -107,17 +107,17 @@ const Login = () => {
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
             <label className="block text-base text-gray-800 font-medium mb-1">
-              Username
+              email
             </label>
             <input
               type="text"
               required
-              value={formData.userName}
+              value={formData.email}
               onChange={(e) =>
-                setFormData({ ...formData, userName: e.target.value })
+                setFormData({ ...formData, email: e.target.value })
               }
               className="w-full px-4 py-2 rounded bg-white focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all"
-              placeholder="Enter your username"
+              placeholder="Enter your email"
             />
           </div>
 
