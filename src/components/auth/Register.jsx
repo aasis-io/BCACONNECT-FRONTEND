@@ -6,6 +6,7 @@ import axiosInstance from "../../api/AxiosInstance";
 
 const Register = () => {
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const semesters = [
@@ -28,6 +29,7 @@ const Register = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
     try {
       const response = await axiosInstance.post("/auth/register", formData);
       toast.success(response.data.message || "Registration successful");
@@ -38,6 +40,8 @@ const Register = () => {
       const backendError =
         error.response?.data?.error || error.response?.data?.message;
       toast.error(backendError || "Registration failed.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -52,6 +56,7 @@ const Register = () => {
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Full Name */}
           <div>
             <label className="block text-sm text-gray-800 font-medium mb-1">
               Full Name
@@ -68,28 +73,17 @@ const Register = () => {
             />
           </div>
 
-          {/* <div>
-            <label className="block text-sm text-gray-800 font-medium mb-1">Username</label>
-            <input
-              type="text"
-              required
-              value={formData.userName}
-              onChange={(e) =>
-                setFormData({ ...formData, userName: e.target.value })
-              }
-              className="w-full px-4 py-2 rounded bg-white  focus:outline-none focus:ring-2 focus:ring-blue-400 placeholder-gray-400 transition-all duration-150"
-              placeholder="Unique username"
-            />
-          </div> */}
-
+          {/* Semester */}
           <div>
-            <label className="block text-sm text-gray-800 font-medium mb-1">Semester</label>
+            <label className="block text-sm text-gray-800 font-medium mb-1">
+              Semester
+            </label>
             <select
               value={formData.semester}
               onChange={(e) =>
                 setFormData({ ...formData, semester: e.target.value })
               }
-              className="w-full px-4 py-2 rounded bg-white  focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all duration-150"
+              className="w-full px-4 py-2 rounded bg-white focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all duration-150"
             >
               {semesters.map((sem, i) => (
                 <option value={sem} key={i}>
@@ -99,6 +93,7 @@ const Register = () => {
             </select>
           </div>
 
+          {/* Email */}
           <div>
             <label className="block text-sm text-gray-800 font-medium mb-1">
               Email address
@@ -110,13 +105,16 @@ const Register = () => {
               onChange={(e) =>
                 setFormData({ ...formData, email: e.target.value })
               }
-              className="w-full px-4 py-2 rounded bg-white  focus:outline-none focus:ring-2 focus:ring-blue-400 placeholder-gray-400 transition-all duration-150"
+              className="w-full px-4 py-2 rounded bg-white focus:outline-none focus:ring-2 focus:ring-blue-400 placeholder-gray-400 transition-all duration-150"
               placeholder="your@email.com"
             />
           </div>
 
+          {/* Password */}
           <div>
-            <label className="block text-sm text-gray-800 font-medium mb-1">Password</label>
+            <label className="block text-sm text-gray-800 font-medium mb-1">
+              Password
+            </label>
             <div className="relative">
               <input
                 type={showPassword ? "text" : "password"}
@@ -125,7 +123,7 @@ const Register = () => {
                 onChange={(e) =>
                   setFormData({ ...formData, password: e.target.value })
                 }
-                className="w-full px-4 py-2 rounded bg-white  focus:outline-none focus:ring-2 focus:ring-blue-400 placeholder-gray-400 transition-all duration-150"
+                className="w-full px-4 py-2 rounded bg-white focus:outline-none focus:ring-2 focus:ring-blue-400 placeholder-gray-400 transition-all duration-150"
                 placeholder="••••••••"
               />
               <div
@@ -137,11 +135,17 @@ const Register = () => {
             </div>
           </div>
 
+          {/* Submit button with spinner */}
           <button
             type="submit"
-            className="w-full py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors duration-200 shadow-md"
+            disabled={loading}
+            className="w-full py-2 flex justify-center items-center bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors duration-200 shadow-md disabled:opacity-70 disabled:cursor-not-allowed"
           >
-            Register
+            {loading ? (
+              <div className="h-5 w-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+            ) : (
+              "Register"
+            )}
           </button>
         </form>
 

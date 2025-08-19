@@ -1,8 +1,11 @@
 import { Route, Routes } from "react-router-dom";
 import NotFound from "../components/NotFound";
 import Profile from "../components/Profile";
+import ChangeForgetPassword from "../components/auth/ChangeForgetPassword";
+import ForgetPassword from "../components/auth/ForgotPassword";
 import Login from "../components/auth/Login";
 import Register from "../components/auth/Register";
+import Verify from "../components/auth/Verify";
 import DashboardLayout from "../layout/DashboardLayout";
 import AddNote from "../pages/Dashboard/AddNote";
 import Home from "../pages/Dashboard/Home";
@@ -24,6 +27,10 @@ const AppRoutes = () => {
 
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
+      <Route path="/verify-email" element={<Verify />} />
+      <Route path="/forgot-password" element={<ForgetPassword />} />
+      <Route path="/change-password" element={<ChangeForgetPassword />} />
+
 
       <Route path="*" element={<NotFound />} />
     </Routes>

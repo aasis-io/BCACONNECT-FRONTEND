@@ -166,7 +166,7 @@ const Login = () => {
         <p className="text-sm text-center text-gray-700 mt-2">
           Forgot password?{" "}
           <Link
-            to="/forget-password"
+            to="/forgot-password"
             className="text-blue-600 font-medium hover:underline"
           >
             Click here
