@@ -1,6 +1,7 @@
 import { Route, Routes } from "react-router-dom";
 import NotFound from "../components/NotFound";
 import Profile from "../components/Profile";
+import SavedNotes from "../components/SavedNotes";
 import ChangeForgetPassword from "../components/auth/ChangeForgetPassword";
 import ForgetPassword from "../components/auth/ForgotPassword";
 import Login from "../components/auth/Login";
@@ -23,6 +24,7 @@ const AppRoutes = () => {
         <Route path="/dashboard/users" element={<ListUsers />} />
         <Route path="/dashboard/profile" element={<Profile />} />
         <Route path="/dashboard/notes" element={<Notes />} />
+        <Route path="/dashboard/saved-notes" element={<SavedNotes />} />
       </Route>
 
       <Route path="/login" element={<Login />} />

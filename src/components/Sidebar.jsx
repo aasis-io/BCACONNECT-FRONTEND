@@ -1,4 +1,5 @@
 import {
+  BookmarkCheck,
   CircleUser,
   FileClock,
   FilePlus2,
@@ -55,11 +56,11 @@ const Sidebar = () => {
     { label: "Home", to: "/dashboard", icon: <LayoutDashboard /> },
     { label: "Notes", to: "/dashboard/notes", icon: <NotebookPen /> },
     { label: "Add Post", to: "/dashboard/uploads", icon: <FilePlus2 /> },
-    // {
-    //   label: "Saved Notes",
-    //   to: "/dashboard/favorites",
-    //   icon: <BookmarkCheck />,
-    // },
+    {
+      label: "Saved Notes",
+      to: "/dashboard/saved-notes",
+      icon: <BookmarkCheck />,
+    },
     { label: "Profile", to: "/dashboard/profile", icon: <CircleUser /> },
   ];
 
