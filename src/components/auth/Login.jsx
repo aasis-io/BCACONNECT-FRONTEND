@@ -107,7 +107,7 @@ const Login = () => {
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
             <label className="block text-base text-gray-800 font-medium mb-1">
-              email
+              Email
             </label>
             <input
               type="text"

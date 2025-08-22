@@ -16,7 +16,7 @@ const SavedNotes = () => {
 
   const fetchPosts = () => {
     axiosInstance
-      .get("/post/getAllPosts")
+      .get("/post/savedPosts")
       .then((res) => setPosts(res.data.data))
       .catch((err) => console.error(err))
       .finally(() => setLoading(false));
@@ -76,6 +76,7 @@ const SavedNotes = () => {
               post={post}
               userRole={userRole}
               onDelete={handleDelete}
+              initialSaved={true}
             />
           ))}
         </div>
