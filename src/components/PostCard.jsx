@@ -4,7 +4,13 @@ import toast from "react-hot-toast";
 import Lightbox from "yet-another-react-lightbox";
 import axiosInstance from "../api/AxiosInstance";
 
-const PostCard = ({ post, userRole, onDelete, initialSaved = false }) => {
+const PostCard = ({
+  post,
+  userRole,
+  onDelete,
+  onUnsave,
+  initialSaved = false,
+}) => {
   const [isSaved, setIsSaved] = useState(initialSaved);
   const [isOpen, setIsOpen] = useState(false);
 
@@ -20,6 +26,7 @@ const PostCard = ({ post, userRole, onDelete, initialSaved = false }) => {
         await axiosInstance.post(`/post/unsavePost/${postId}`);
         setIsSaved(false);
         toast.success("Post removed from saved notes");
+        if (onUnsave) onUnsave(postId);
       } else {
         await axiosInstance.post(`/post/savePost/${postId}`);
         setIsSaved(true);
@@ -30,6 +37,9 @@ const PostCard = ({ post, userRole, onDelete, initialSaved = false }) => {
       toast.error("Something went wrong. Please try again.");
     }
   };
+
+  const isImage = post.fileType?.startsWith("image");
+  const isPdf = post.fileType?.includes("pdf");
 
   return (
     <>
@@ -49,7 +59,6 @@ const PostCard = ({ post, userRole, onDelete, initialSaved = false }) => {
           </div>
 
           <div className="flex gap-2">
-            {/* Save / Unsave button */}
             <button
               className={`${
                 isSaved ? "text-green-600" : "text-blue-500"
@@ -60,7 +69,6 @@ const PostCard = ({ post, userRole, onDelete, initialSaved = false }) => {
               <Bookmark fill={isSaved ? "currentColor" : "none"} />
             </button>
 
-            {/* Delete button (only for admin/moderator) */}
             {onDelete && (userRole === "ADMIN" || userRole === "MODERATOR") && (
               <button
                 className="text-red-500 hover:text-red-700"
@@ -78,7 +86,7 @@ const PostCard = ({ post, userRole, onDelete, initialSaved = false }) => {
         </h3>
         <p className="text-sm text-gray-600 mb-3">{post.content}</p>
 
-        <div className="flex gap-4">
+        <div className="flex gap-4 mb-3">
           {post.semester && (
             <p className="text-xs text-gray-400">{post.semester} Sem</p>
           )}
@@ -87,30 +95,45 @@ const PostCard = ({ post, userRole, onDelete, initialSaved = false }) => {
           )}
         </div>
 
-        {post.fileUrl && post.fileType?.startsWith("image") && (
-          <div className="relative group w-full h-96 rounded-md overflow-hidden">
-            {/* Preview image fills area */}
-            <img
-              src={post.fileUrl}
-              alt={post.filename}
-              className="w-full h-full object-cover transition duration-300 group-hover:brightness-90"
-            />
-
-            {/* Hover overlay button */}
-            <div className="absolute inset-0.5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition">
-              <button
-                className="bg-white/90 text-gray-800 px-4 py-2 rounded flex items-center gap-2 hover:bg-white hover:cursor-pointer"
-                onClick={() => setIsOpen(true)}
-              >
-                <Expand size={18} /> View Fullscreen
-              </button>
-            </div>
-          </div>
+        {/* File rendering */}
+        {post.fileUrl && (
+          <>
+            {isImage ? (
+              <div className="relative group w-full h-96 rounded-md overflow-hidden">
+                <img
+                  src={post.fileUrl}
+                  alt={post.filename}
+                  className="w-full h-full object-cover transition duration-300 group-hover:brightness-90"
+                />
+                <div className="absolute inset-0.5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition">
+                  <button
+                    className="bg-white/90 text-gray-800 px-4 py-2 rounded flex items-center gap-2 hover:bg-white hover:cursor-pointer"
+                    onClick={() => setIsOpen(true)}
+                  >
+                    <Expand size={18} /> View Fullscreen
+                  </button>
+                </div>
+              </div>
+            ) : isPdf ? (
+              <div className="mt-2">
+                <p className="text-sm font-medium text-gray-700 mb-1">
+                {post.filename.split("_").slice(1).join("_")}
+                </p>
+                <a
+                  href={post.fileUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-600 hover:underline"
+                >
+                  Open File
+                </a>
+              </div>
+            ) : null}
+          </>
         )}
       </div>
 
-      {/* Lightbox Modal */}
-      {isOpen && (
+      {isOpen && isImage && (
         <Lightbox
           open={isOpen}
           close={() => setIsOpen(false)}

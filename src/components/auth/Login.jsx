@@ -3,7 +3,7 @@ import toast from "react-hot-toast";
 import { FiEye, FiEyeOff } from "react-icons/fi";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import axiosInstance from "../../api/AxiosInstance.js";
-import GitHubLogo from "../../assets/github.svg"; // Make sure to have a GitHub logo in this path
+import GitHubLogo from "../../assets/github.svg";
 import GoogleLogo from "../../assets/google.svg";
 
 const Login = () => {
@@ -14,25 +14,34 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({ email: "", password: "" });
 
-  // Show message from location state (e.g. after registration)
+  // Show message from location state or query params
   useEffect(() => {
+    // 1️⃣ State message (e.g., after registration)
     if (location.state?.message) {
       setMessage(location.state.message);
     }
+
+    // 2️⃣ URL query param message (e.g., token expired)
+    const params = new URLSearchParams(window.location.search);
+    const messageFromURL = params.get("message");
+    if (messageFromURL) {
+      toast.error(decodeURIComponent(messageFromURL));
+      // Optional: remove query param from URL after showing toast
+      const url = new URL(window.location);
+      url.searchParams.delete("message");
+      window.history.replaceState({}, "", url.toString());
+    }
   }, [location]);
 
-  // Handle token/message in URL params (OAuth redirects)
+  // OAuth token or message
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const token = params.get("token");
-    const messageFromURL = params.get("message");
 
     if (token) {
       localStorage.setItem("jwt", token);
       toast.success("Login Successful");
       navigate("/dashboard", { replace: true });
-    } else if (messageFromURL) {
-      toast.error(decodeURIComponent(messageFromURL));
     }
   }, [navigate]);
 
@@ -82,7 +91,7 @@ const Login = () => {
   };
 
   const handleGitHubLogin = () => {
-    const clientId = "Ov23likCWv1m4x4PSDLb"; // Your GitHub client ID
+    const clientId = "Ov23likCWv1m4x4PSDLb";
     const redirectUri = "http://localhost:8080/auth/github/callback";
     const scope = "user:email";
 

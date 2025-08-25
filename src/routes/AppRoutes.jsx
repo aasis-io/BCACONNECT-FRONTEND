@@ -13,20 +13,25 @@ import Home from "../pages/Dashboard/Home";
 import ListUsers from "../pages/Dashboard/ListUsers";
 import Notes from "../pages/Dashboard/Notes";
 import PostApproval from "../pages/Dashboard/PostApproval";
+import ProtectedRoute from "./ProtectedRoute"; // ✅ import wrapper
 
 const AppRoutes = () => {
   return (
     <Routes>
-      <Route path="/dashboard" element={<DashboardLayout />}>
-        <Route index element={<Home />} />
-        <Route path="/dashboard/uploads" element={<AddNote />} />
-        <Route path="/dashboard/approvals" element={<PostApproval />} />
-        <Route path="/dashboard/users" element={<ListUsers />} />
-        <Route path="/dashboard/profile" element={<Profile />} />
-        <Route path="/dashboard/notes" element={<Notes />} />
-        <Route path="/dashboard/saved-notes" element={<SavedNotes />} />
+      {/* Protected Dashboard Routes */}
+      <Route element={<ProtectedRoute />}>
+        <Route path="/dashboard" element={<DashboardLayout />}>
+          <Route index element={<Home />} />
+          <Route path="uploads" element={<AddNote />} />
+          <Route path="approvals" element={<PostApproval />} />
+          <Route path="users" element={<ListUsers />} />
+          <Route path="profile" element={<Profile />} />
+          <Route path="notes" element={<Notes />} />
+          <Route path="saved-notes" element={<SavedNotes />} />
+        </Route>
       </Route>
 
+      {/* Public Routes */}
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route path="/verify-email" element={<Verify />} />
@@ -34,7 +39,7 @@ const AppRoutes = () => {
       <Route path="/change-password" element={<ChangeForgetPassword />} />
       <Route path="/" element={<Login />} />
 
-
+      {/* Catch-all */}
       <Route path="*" element={<NotFound />} />
     </Routes>
   );

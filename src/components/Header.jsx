@@ -30,7 +30,7 @@ const Header = () => {
     <header className="w-full bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between shadow-sm">
       {/* Left: Logo */}
       <div className="flex items-center space-x-2">
-        <img src={Logo} alt="" />
+        <Link to="/dashboard" className="hover:cursor-pointer"><img src={Logo} alt="" /></Link>
       </div>
 
       {/* Center: Tagline */}

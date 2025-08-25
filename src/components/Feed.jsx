@@ -6,7 +6,6 @@ const Feed = () => {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [userRole, setUserRole] = useState(null);
-
   const jwt = localStorage.getItem("jwt");
 
   useEffect(() => {
@@ -15,6 +14,7 @@ const Feed = () => {
   }, []);
 
   const fetchPosts = () => {
+    setLoading(true);
     axiosInstance
       .get("/post/getAllPosts")
       .then((res) => setPosts(res.data.data))
@@ -24,41 +24,46 @@ const Feed = () => {
 
   const fetchUser = () => {
     axiosInstance
-      .get("/user/me", {
-        headers: {
-          Authorization: `Bearer ${jwt}`,
-        },
-      })
-      .then((res) => {
-        setUserRole(res.data.data.roles?.[0]); // assuming single role
-      })
-      .catch((err) => console.error("Failed to fetch user role", err));
+      .get("/user/me", { headers: { Authorization: `Bearer ${jwt}` } })
+      .then((res) => setUserRole(res.data.data.roles?.[0]))
+      .catch((err) => console.error(err));
   };
 
-  const handleDelete = async (id) => {
-    const confirmDelete = window.confirm(
-      "Are you sure you want to delete this post?"
-    );
-    if (!confirmDelete) return;
-
+  // Delete post
+  const handleDelete = async (postId) => {
     try {
-      await axiosInstance.delete(`/post/delete/${id}`, {
-        headers: {
-          Authorization: `Bearer ${jwt}`,
-        },
+      await axiosInstance.delete(`/post/delete/${postId}`, {
+        headers: { Authorization: `Bearer ${jwt}` },
       });
-      setPosts(posts.filter((post) => post.id !== id));
+      setPosts((prev) => prev.filter((post) => post.id !== postId));
     } catch (err) {
       console.error("Failed to delete post", err);
-      alert("Error deleting post");
+      throw err;
     }
   };
 
-  const formatDate = (iso) =>
-    new Date(iso).toLocaleString("en-US", {
-      dateStyle: "medium",
-      timeStyle: "short",
-    });
+  // Save / Unsave post: update the local state to reflect saved posts
+  const handleSaveToggle = async (postId, isCurrentlySaved) => {
+    try {
+      if (isCurrentlySaved) {
+        await axiosInstance.post(`/post/unsavePost/${postId}`, null, {
+          headers: { Authorization: `Bearer ${jwt}` },
+        });
+      } else {
+        await axiosInstance.post(`/post/savePost/${postId}`, null, {
+          headers: { Authorization: `Bearer ${jwt}` },
+        });
+      }
+      // Update local post state to reflect saved/unsaved
+      setPosts((prev) =>
+        prev.map((p) =>
+          p.id === postId ? { ...p, saved: !isCurrentlySaved } : p
+        )
+      );
+    } catch (err) {
+      console.error("Save/Unsave error:", err);
+    }
+  };
 
   return (
     <div className="max-w-3xl mx-auto">
@@ -76,6 +81,7 @@ const Feed = () => {
               post={post}
               userRole={userRole}
               onDelete={handleDelete}
+              onSaveToggle={handleSaveToggle} // 🔹 Pass save toggle callback
             />
           ))}
         </div>

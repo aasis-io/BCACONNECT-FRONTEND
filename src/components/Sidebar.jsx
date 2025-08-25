@@ -9,9 +9,10 @@ import {
   Users
 } from "lucide-react";
 import { Button } from "primereact/button";
-import { ConfirmDialog, confirmDialog } from "primereact/confirmdialog";
 import React, { useEffect, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
+import Swal from "sweetalert2"; // ✅ Import SweetAlert2
+import "sweetalert2/dist/sweetalert2.min.css"; // ✅ Optional for styling
 import axiosInstance from "../api/AxiosInstance"; // adjust path as needed
 
 const Sidebar = () => {
@@ -29,7 +30,7 @@ const Sidebar = () => {
           },
         })
         .then((res) => {
-          setUser(res.data.data); 
+          setUser(res.data.data);
         })
         .catch((err) => {
           console.error("Failed to fetch user info:", err);
@@ -38,17 +39,22 @@ const Sidebar = () => {
   }, [jwt]);
 
   const handleLogout = () => {
-    confirmDialog({
-      message: "Are you sure you want to logout?",
-      header: "Logout Confirmation",
-      icon: "pi pi-exclamation-triangle",
-      acceptClassName: "p-button-danger",
-      style: { width: "50vw" },
-      breakpoints: { "1100px": "75vw", "960px": "100vw" },
-      accept: () => {
+    Swal.fire({
+      title: "Are you sure?",
+      text: "You will be logged out of your account.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Yes, logout",
+      cancelButtonText: "Cancel",
+    }).then((result) => {
+      if (result.isConfirmed) {
         localStorage.removeItem("jwt");
-        navigate("/login");
-      },
+        Swal.fire("Logged out!", "You have been logged out successfully.", "success").then(() => {
+          navigate("/login");
+        });
+      }
     });
   };
 
@@ -56,21 +62,13 @@ const Sidebar = () => {
     { label: "Home", to: "/dashboard", icon: <LayoutDashboard /> },
     { label: "Notes", to: "/dashboard/notes", icon: <NotebookPen /> },
     { label: "Add Post", to: "/dashboard/uploads", icon: <FilePlus2 /> },
-    {
-      label: "Saved Notes",
-      to: "/dashboard/saved-notes",
-      icon: <BookmarkCheck />,
-    },
+    { label: "Saved Notes", to: "/dashboard/saved-notes", icon: <BookmarkCheck /> },
     { label: "Profile", to: "/dashboard/profile", icon: <CircleUser /> },
   ];
 
   const adminModNavItems = [
     { label: "Users", to: "/dashboard/users", icon: <Users /> },
-    {
-      label: "Posts for Approval",
-      to: "/dashboard/approvals",
-      icon: <FileClock />,
-    },
+    { label: "Posts for Approval", to: "/dashboard/approvals", icon: <FileClock /> },
   ];
 
   const navItems = [...baseNavItems];
@@ -111,7 +109,6 @@ const Sidebar = () => {
             style={{ color: "#f44336", textAlign: "left" }}
             className="w-full justify-start text-left gap-2 p-button-text text-red-600 hover:bg-red-50"
           />
-          <ConfirmDialog />
         </div>
       )}
     </aside>

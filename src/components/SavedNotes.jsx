@@ -54,11 +54,10 @@ const SavedNotes = () => {
     }
   };
 
-  const formatDate = (iso) =>
-    new Date(iso).toLocaleString("en-US", {
-      dateStyle: "medium",
-      timeStyle: "short",
-    });
+  // 🔹 NEW: remove post immediately when unsaved
+  const handleUnsave = (id) => {
+    setPosts((prev) => prev.filter((post) => post.id !== id));
+  };
 
   return (
     <div className="max-w-3xl mx-auto">
@@ -76,6 +75,7 @@ const SavedNotes = () => {
               post={post}
               userRole={userRole}
               onDelete={handleDelete}
+              onUnsave={handleUnsave}   // 🔹 pass to PostCard
               initialSaved={true}
             />
           ))}

@@ -1,4 +1,3 @@
-import { Dialog } from "primereact/dialog";
 import React, { useEffect, useState } from "react";
 import { toast } from "react-hot-toast";
 import axiosInstance from "../../api/AxiosInstance";
@@ -118,16 +117,55 @@ const PostApproval = () => {
         </table>
       )}
 
+      {/* ✅ Custom Dialog */}
       {visiblePost && (
-        <Dialog
-          header="Post Preview"
-          visible={!!visiblePost}
-          style={{ width: "50vw" }}
-          onHide={() => setVisiblePost(null)}
-          breakpoints={{ "960px": "75vw", "641px": "90vw" }}
-        >
-          {visiblePost && <PostCard post={visiblePost} userRole={userRole} />}
-        </Dialog>
+        <div className="fixed inset-0 flex items-center justify-center bg-black/20 backdrop-blur-sm z-50">
+          <div className="bg-white rounded-lg shadow-lg w-11/12 md:w-2/3 lg:w-1/2 max-h-[90vh] overflow-y-auto">
+            {/* Header */}
+            <div className="flex justify-between items-center px-4 py-2">
+              <h3 className="text-lg font-semibold">Post Preview</h3>
+              <button
+                onClick={() => setVisiblePost(null)}
+                className="text-gray-500 hover:text-gray-800"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Content */}
+            <div className="p-4">
+              <PostCard post={visiblePost} userRole={userRole} />
+            </div>
+
+            {/* Footer */}
+            <div className="flex justify-end px-4 py-2 gap-2">
+              <button
+                onClick={() => {
+                  handleStatusChange(visiblePost.id, 1);
+                  setVisiblePost(null);
+                }}
+                className="px-3 py-1 bg-green-500 text-white rounded text-sm"
+              >
+                Approve
+              </button>
+              <button
+                onClick={() => {
+                  handleStatusChange(visiblePost.id, 0);
+                  setVisiblePost(null);
+                }}
+                className="px-3 py-1 bg-red-500 text-white rounded text-sm"
+              >
+                Reject
+              </button>
+              <button
+                onClick={() => setVisiblePost(null)}
+                className="px-3 py-1 bg-gray-300 text-gray-700 rounded text-sm"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
