@@ -35,15 +35,15 @@ const ListUsers = () => {
     fetchAllUsers();
   }, []);
 
-  const deleteUser = async (userName) => {
+  const deleteUser = async (email) => {
     if (
-      !window.confirm(`Are you sure you want to delete user "${userName}"?`)
+      !window.confirm(`Are you sure you want to delete user "${email}"?`)
     ) {
       return;
     }
 
     try {
-      await axiosInstance.delete(`/moderator/delete/${userName}`, {
+      await axiosInstance.delete(`/moderator/delete/${email}`, {
         headers: {
           Authorization: `Bearer ${jwt}`,
         },
@@ -56,9 +56,9 @@ const ListUsers = () => {
     }
   };
 
-  const promoteUser = async (userName) => {
+  const promoteUser = async (email) => {
     try {
-      await axiosInstance.post(`/admin/makeModerator/${userName}`, null, {
+      await axiosInstance.post(`/admin/makeModerator/${email}`, null, {
         headers: {
           Authorization: `Bearer ${jwt}`,
         },
@@ -71,9 +71,9 @@ const ListUsers = () => {
     }
   };
 
-  const demoteUser = async (userName) => {
+  const demoteUser = async (email) => {
     try {
-      await axiosInstance.post(`/admin/removeModerator/${userName}`, null, {
+      await axiosInstance.post(`/admin/removeModerator/${email}`, null, {
         headers: {
           Authorization: `Bearer ${jwt}`,
         },
@@ -100,7 +100,7 @@ const ListUsers = () => {
             <tr className="bg-gray-100 text-left">
               <th className="p-2 border">SN</th>
               <th className="p-2 border">Name</th>
-              <th className="p-2 border">Username</th>
+              <th className="p-2 border">email</th>
               <th className="p-2 border">Email</th>
               <th className="p-2 border">Role</th>
               <th className="p-2 border">Actions</th>
@@ -111,7 +111,7 @@ const ListUsers = () => {
               <tr key={user.id} className="hover:bg-gray-50">
                 <td className="p-2 border">{index + 1}</td>
                 <td className="p-2 border">{user.fullName}</td>
-                <td className="p-2 border">{user.userName}</td>
+                <td className="p-2 border">{user.email}</td>
                 <td className="p-2 border">{user.email}</td>
                 <td className="p-2 border">
                   {user.roles[user.roles.length - 1]}
@@ -120,7 +120,7 @@ const ListUsers = () => {
                   {user.roles[user.roles.length - 1] !== "ADMIN" && (
                     <>
                       <button
-                        onClick={() => deleteUser(user.userName)}
+                        onClick={() => deleteUser(user.email)}
                         className="px-2 py-1 bg-red-500 text-white rounded text-xs"
                       >
                         Delete
@@ -128,14 +128,14 @@ const ListUsers = () => {
 
                       {user.roles[user.roles.length - 1] === "USER" ? (
                         <button
-                          onClick={() => promoteUser(user.userName)}
+                          onClick={() => promoteUser(user.email)}
                           className="px-2 py-1 bg-blue-500 text-white rounded text-xs"
                         >
                           Promote
                         </button>
                       ) : (
                         <button
-                          onClick={() => demoteUser(user.userName)}
+                          onClick={() => demoteUser(user.email)}
                           className="px-2 py-1 bg-cyan-500 text-white rounded text-xs"
                         >
                           Demote

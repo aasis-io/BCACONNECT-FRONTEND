@@ -7,12 +7,12 @@ import axiosInstance from "../api/AxiosInstance";
 const PostCard = ({
   post,
   userRole,
-  onDelete,
   onUnsave,
   initialSaved = false,
 }) => {
   const [isSaved, setIsSaved] = useState(initialSaved);
   const [isOpen, setIsOpen] = useState(false);
+  const [isDeleted, setIsDeleted] = useState(false);
 
   const formatDate = (iso) =>
     new Date(iso).toLocaleString("en-US", {
@@ -38,8 +38,21 @@ const PostCard = ({
     }
   };
 
+  const handleDelete = async (postId) => {
+    try {
+      await axiosInstance.delete(`/post/delete/${postId}`);
+      toast.success("Post deleted successfully");
+      setIsDeleted(true);
+    } catch (error) {
+      console.error("Delete error:", error);
+      toast.error("Failed to delete post. Please try again.");
+    }
+  };
+
   const isImage = post.fileType?.startsWith("image");
   const isPdf = post.fileType?.includes("pdf");
+
+  if (isDeleted) return null;
 
   return (
     <>
@@ -48,11 +61,13 @@ const PostCard = ({
         <div className="flex justify-between items-start mb-2">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-full bg-blue-500 text-white flex items-center justify-center font-bold">
+              
               {post.userResponse?.fullName?.charAt(0) || "U"}
             </div>
             <div>
               <p className="text-sm font-semibold text-gray-800">
                 {post.userResponse?.fullName}
+                
               </p>
               <p className="text-xs text-gray-500">{formatDate(post.date)}</p>
             </div>
@@ -69,10 +84,10 @@ const PostCard = ({
               <Bookmark fill={isSaved ? "currentColor" : "none"} />
             </button>
 
-            {onDelete && (userRole === "ADMIN" || userRole === "MODERATOR") && (
+            {(userRole === "ADMIN" || userRole === "MODERATOR") && (
               <button
                 className="text-red-500 hover:text-red-700"
-                onClick={() => onDelete(post.id)}
+                onClick={() => handleDelete(post.id)}
                 title="Delete Post"
               >
                 <Trash2 />
@@ -83,6 +98,7 @@ const PostCard = ({
 
         <h3 className="text-base font-semibold text-blue-700 mb-1">
           {post.caption}
+           
         </h3>
         <p className="text-sm text-gray-600 mb-3">{post.content}</p>
 
@@ -93,6 +109,7 @@ const PostCard = ({
           {post.subject && (
             <p className="text-xs text-gray-400">{post.subject}</p>
           )}
+          
         </div>
 
         {/* File rendering */}
@@ -117,7 +134,7 @@ const PostCard = ({
             ) : isPdf ? (
               <div className="mt-2">
                 <p className="text-sm font-medium text-gray-700 mb-1">
-                {post.filename.split("_").slice(1).join("_")}
+                  {post.filename}
                 </p>
                 <a
                   href={post.fileUrl}
@@ -133,6 +150,7 @@ const PostCard = ({
         )}
       </div>
 
+      {/* Lightbox for fullscreen image */}
       {isOpen && isImage && (
         <Lightbox
           open={isOpen}
