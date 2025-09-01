@@ -1,12 +1,14 @@
 import { Bookmark, Expand, Trash2 } from "lucide-react";
 import React, { useState } from "react";
 import toast from "react-hot-toast";
+import Swal from "sweetalert2";
 import Lightbox from "yet-another-react-lightbox";
 import axiosInstance from "../api/AxiosInstance";
 
 const PostCard = ({
   post,
   userRole,
+  currentUserId, // 👈 new prop
   onDelete,
   onUnsave,
   initialSaved = false,
@@ -38,6 +40,23 @@ const PostCard = ({
     }
   };
 
+  const handleDelete = (postId) => {
+    Swal.fire({
+      title: "Are you sure?",
+      text: "This action cannot be undone!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Yes, delete it!",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        onDelete(postId);
+        Swal.fire("Deleted!", "The post has been deleted.", "success");
+      }
+    });
+  };
+
   const isImage = post.fileType?.startsWith("image");
   const isPdf = post.fileType?.includes("pdf");
 
@@ -59,6 +78,7 @@ const PostCard = ({
           </div>
 
           <div className="flex gap-2">
+            {/* Save / Unsave */}
             <button
               className={`${
                 isSaved ? "text-green-600" : "text-blue-500"
@@ -69,15 +89,19 @@ const PostCard = ({
               <Bookmark fill={isSaved ? "currentColor" : "none"} />
             </button>
 
-            {onDelete && (userRole === "ADMIN" || userRole === "MODERATOR") && (
-              <button
-                className="text-red-500 hover:text-red-700"
-                onClick={() => onDelete(post.id)}
-                title="Delete Post"
-              >
-                <Trash2 />
-              </button>
-            )}
+            {/* Delete - admin, moderator, OR own post */}
+            {onDelete &&
+              (userRole === "ADMIN" ||
+                userRole === "MODERATOR" ||
+                post.userResponse?.id === currentUserId) && (
+                <button
+                  className="text-red-500 hover:text-red-700"
+                  onClick={() => handleDelete(post.id)}
+                  title="Delete Post"
+                >
+                  <Trash2 />
+                </button>
+              )}
           </div>
         </div>
 
@@ -117,7 +141,7 @@ const PostCard = ({
             ) : isPdf ? (
               <div className="mt-2">
                 <p className="text-sm font-medium text-gray-700 mb-1">
-                {post.filename.split("_").slice(1).join("_")}
+                  {post.filename.split("_").slice(1).join("_")}
                 </p>
                 <a
                   href={post.fileUrl}
