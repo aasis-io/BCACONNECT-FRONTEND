@@ -54,13 +54,11 @@ export default function Notes() {
     }
   }, [subject]);
 
-  const fetchNotes = async () => {
+  const fetchNotes = async (sem = semester, sub = subject) => {
     setLoading(true);
     try {
       const res = await axiosInstance.get(
-        `/note/getNote?semester=${encodeURIComponent(
-          semester
-        )}&subject=${encodeURIComponent(subject)}`
+        `/note/getNote?semester=${encodeURIComponent(sem)}&subject=${encodeURIComponent(sub)}`
       );
       setNotes(res.data.data || []);
     } catch (err) {
@@ -71,15 +69,9 @@ export default function Notes() {
   };
 
   // Delete handler
-  const handleDeleteNote = async (noteId) => {
-    try {
-      await axiosInstance.delete(`/note/deleteNote/${noteId}`, {
-        headers: { Authorization: `Bearer ${jwt}` },
-      });
-      setNotes((prev) => prev.filter((note) => note.note_id !== noteId));
-    } catch (err) {
-      console.error("Error deleting note:", err);
-    }
+  const handleDeleteNote = (noteId) => {
+    // Remove the deleted note from state immediately
+    setNotes((prevNotes) => prevNotes.filter((note) => note.note_id !== noteId));
   };
 
   return (
@@ -94,9 +86,7 @@ export default function Notes() {
         >
           <option value="">Select Semester</option>
           {semesterOptions.map((sem) => (
-            <option key={sem} value={sem}>
-              {sem}
-            </option>
+            <option key={sem} value={sem}>{sem}</option>
           ))}
         </select>
 
@@ -108,21 +98,15 @@ export default function Notes() {
         >
           <option value="">Select Subject</option>
           {subjects.map((sub) => (
-            <option key={sub} value={sub}>
-              {sub}
-            </option>
+            <option key={sub} value={sub}>{sub}</option>
           ))}
         </select>
       </div>
 
-      {loading && (
-        <p className="mt-6 text-blue-600 animate-pulse">Loading notes...</p>
-      )}
+      {loading && <p className="mt-6 text-blue-600 animate-pulse">Loading notes...</p>}
 
       {!loading && notes.length === 0 && semester && subject && (
-        <p className="mt-6 text-gray-500">
-          No notes available for this selection.
-        </p>
+        <p className="mt-6 text-gray-500">No notes available for this selection.</p>
       )}
 
       {notes.length > 0 && (
@@ -132,7 +116,7 @@ export default function Notes() {
               key={note.note_id}
               note={note}
               userRole={userRole}
-              currentUserId={currentUserId} // optional: owner delete
+              currentUserId={currentUserId}
               onDelete={handleDeleteNote}
             />
           ))}

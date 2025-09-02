@@ -1,9 +1,10 @@
 import React from "react";
 import Swal from "sweetalert2";
+import axiosInstance from "../api/AxiosInstance";
 
 const NoteCard = ({ note, userRole, onDelete, currentUserId }) => {
   const isImage = note.fileType?.startsWith("image/");
-  const isPdf = note.fileType?.includes("pdf"); // more robust check
+  const isPdf = note.fileType?.includes("pdf");
 
   const handleDelete = () => {
     Swal.fire({
@@ -14,10 +15,19 @@ const NoteCard = ({ note, userRole, onDelete, currentUserId }) => {
       confirmButtonColor: "#d33",
       cancelButtonColor: "#3085d6",
       confirmButtonText: "Yes, delete it!",
-    }).then((result) => {
+    }).then(async (result) => {
       if (result.isConfirmed) {
-        onDelete(note.id);
-        Swal.fire("Deleted!", "The note has been deleted.", "success");
+        try {
+          await axiosInstance.delete(`/moderator/deleteNote/${note.note_id}`);
+          
+          // Notify parent to remove this note from state
+          if (onDelete) onDelete(note.note_id);
+
+          Swal.fire("Deleted!", "The note has been deleted.", "success");
+        } catch (error) {
+          console.error("❌ Delete error:", error.response || error);
+          Swal.fire("Error!", "Failed to delete the note.", "error");
+        }
       }
     });
   };
@@ -28,51 +38,37 @@ const NoteCard = ({ note, userRole, onDelete, currentUserId }) => {
         {/* Subject + Semester */}
         <div className="flex justify-between items-start mb-3">
           <div>
-            <h3 className="font-semibold text-lg text-gray-800">
-              {note.subject}
-            </h3>
+            <h3 className="font-semibold text-lg text-gray-800">{note.subject}</h3>
             <p className="text-sm text-gray-500">{note.semester} Sem</p>
           </div>
 
-          {/* Delete button */}
-          {onDelete &&
-            (userRole === "ADMIN" ||
-              userRole === "MODERATOR" ||
-              note.userResponse.id === currentUserId) && (
-              <button
-                onClick={handleDelete}
-                className="text-red-500 hover:text-red-700 text-sm"
-                title="Delete Note"
-              >
-                Delete
-              </button>
-            )}
+          {(userRole === "ADMIN" ||
+            userRole === "MODERATOR" ||
+            note.userResponse.id === currentUserId) && (
+            <button
+              onClick={handleDelete}
+              className="text-red-500 hover:text-red-700 text-sm"
+              title="Delete Note"
+            >
+              Delete
+            </button>
+          )}
         </div>
 
         {/* Uploader Info */}
         <div className="mb-3">
-          <p className="text-sm text-gray-600">
-            Uploaded by: {note.userResponse.fullName}
-          </p>
-          <p className="text-sm text-gray-500">
-            Email: {note.userResponse.email}
-          </p>
+          <p className="text-sm text-gray-600">Uploaded by: {note.userResponse.fullName}</p>
+          <p className="text-sm text-gray-500">Email: {note.userResponse.email}</p>
         </div>
 
         {/* File Preview */}
         {note.fileUrl && (
           <div className="mb-3">
             {isImage ? (
-              <img
-                src={note.fileUrl}
-                alt={note.filename}
-                className="max-h-60 rounded-md border"
-              />
+              <img src={note.fileUrl} alt={note.filename} className="max-h-60 rounded-md border" />
             ) : isPdf ? (
               <div>
-                <p className="text-sm font-medium text-gray-700 mb-2">
-                  {note.filename}
-                </p>
+                <p className="text-sm font-medium text-gray-700 mb-2">{note.filename}</p>
                 <iframe
                   src={note.fileUrl}
                   title={note.filename}
@@ -89,9 +85,7 @@ const NoteCard = ({ note, userRole, onDelete, currentUserId }) => {
               </div>
             ) : (
               <div>
-                <p className="text-sm font-medium text-gray-700 mb-1">
-                  {note.filename}
-                </p>
+                <p className="text-sm font-medium text-gray-700 mb-1">{note.filename}</p>
                 <a
                   href={note.fileUrl}
                   target="_blank"

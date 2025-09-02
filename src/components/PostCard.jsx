@@ -1,46 +1,12 @@
-import { Bookmark, Expand, Trash2 } from "lucide-react";
-import React, { useState } from "react";
-import toast from "react-hot-toast";
+import React from "react";
 import Swal from "sweetalert2";
-import Lightbox from "yet-another-react-lightbox";
-import axiosInstance from "../api/AxiosInstance";
+import axiosInstance from "../api/AxiosInstance"; // 👈 add this
 
-const PostCard = ({
-  post,
-  userRole,
-  currentUserId, // 👈 new prop
-  onDelete,
-  onUnsave,
-  initialSaved = false,
-}) => {
-  const [isSaved, setIsSaved] = useState(initialSaved);
-  const [isOpen, setIsOpen] = useState(false);
+const NoteCard = ({ note, userRole, onDelete, currentUserId }) => {
+  const isImage = note.fileType?.startsWith("image/");
+  const isPdf = note.fileType?.includes("pdf");
 
-  const formatDate = (iso) =>
-    new Date(iso).toLocaleString("en-US", {
-      dateStyle: "medium",
-      timeStyle: "short",
-    });
-
-  const handleToggleSave = async (postId) => {
-    try {
-      if (isSaved) {
-        await axiosInstance.post(`/post/unsavePost/${postId}`);
-        setIsSaved(false);
-        toast.success("Post removed from saved notes");
-        if (onUnsave) onUnsave(postId);
-      } else {
-        await axiosInstance.post(`/post/savePost/${postId}`);
-        setIsSaved(true);
-        toast.success("Post saved successfully");
-      }
-    } catch (error) {
-      console.error("Save/Unsave error:", error);
-      toast.error("Something went wrong. Please try again.");
-    }
-  };
-
-  const handleDelete = (postId) => {
+  const handleDelete = async () => {
     Swal.fire({
       title: "Are you sure?",
       text: "This action cannot be undone!",
@@ -49,123 +15,113 @@ const PostCard = ({
       confirmButtonColor: "#d33",
       cancelButtonColor: "#3085d6",
       confirmButtonText: "Yes, delete it!",
-    }).then((result) => {
+    }).then(async (result) => {
       if (result.isConfirmed) {
-        onDelete(postId);
-        Swal.fire("Deleted!", "The post has been deleted.", "success");
+        try {
+          // 👇 call your backend delete API
+          await axiosInstance.delete(`/moderator/deleteNote/${note.id}`);
+
+          // optional callback for UI sync
+          if (onDelete) onDelete(note.id);
+
+          Swal.fire("Deleted!", "The note has been deleted.", "success");
+        } catch (error) {
+          console.error("Error deleting note:", error);
+          Swal.fire("Error!", "Failed to delete the note.", "error");
+        }
       }
     });
   };
 
-  const isImage = post.fileType?.startsWith("image");
-  const isPdf = post.fileType?.includes("pdf");
-
   return (
-    <>
-      {/* Card */}
-      <div className="bg-white p-4 rounded-md shadow-sm hover:shadow transition">
-        <div className="flex justify-between items-start mb-2">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-blue-500 text-white flex items-center justify-center font-bold">
-              {post.userResponse?.fullName?.charAt(0) || "U"}
-            </div>
-            <div>
-              <p className="text-sm font-semibold text-gray-800">
-                {post.userResponse?.fullName}
-              </p>
-              <p className="text-xs text-gray-500">{formatDate(post.date)}</p>
-            </div>
+    <div className="bg-white rounded-lg shadow-md overflow-hidden mb-4">
+      <div className="p-4">
+        {/* Subject + Semester */}
+        <div className="flex justify-between items-start mb-3">
+          <div>
+            <h3 className="font-semibold text-lg text-gray-800">
+              {note.subject}
+            </h3>
+            <p className="text-sm text-gray-500">{note.semester} Sem</p>
           </div>
 
-          <div className="flex gap-2">
-            {/* Save / Unsave */}
+          {/* Delete button */}
+          {(userRole === "ADMIN" ||
+            userRole === "MODERATOR" ||
+            note.userResponse.id === currentUserId) && (
             <button
-              className={`${
-                isSaved ? "text-green-600" : "text-blue-500"
-              } hover:opacity-80`}
-              onClick={() => handleToggleSave(post.id)}
-              title={isSaved ? "Unsave Post" : "Save Post"}
+              onClick={handleDelete}
+              className="text-red-500 hover:text-red-700 text-sm"
+              title="Delete Note"
             >
-              <Bookmark fill={isSaved ? "currentColor" : "none"} />
+              Delete
             </button>
-
-            {/* Delete - admin, moderator, OR own post */}
-            {onDelete &&
-              (userRole === "ADMIN" ||
-                userRole === "MODERATOR" ||
-                post.userResponse?.id === currentUserId) && (
-                <button
-                  className="text-red-500 hover:text-red-700"
-                  onClick={() => handleDelete(post.id)}
-                  title="Delete Post"
-                >
-                  <Trash2 />
-                </button>
-              )}
-          </div>
-        </div>
-
-        <h3 className="text-base font-semibold text-blue-700 mb-1">
-          {post.caption}
-        </h3>
-        <p className="text-sm text-gray-600 mb-3">{post.content}</p>
-
-        <div className="flex gap-4 mb-3">
-          {post.semester && (
-            <p className="text-xs text-gray-400">{post.semester} Sem</p>
-          )}
-          {post.subject && (
-            <p className="text-xs text-gray-400">{post.subject}</p>
           )}
         </div>
 
-        {/* File rendering */}
-        {post.fileUrl && (
-          <>
+        {/* Uploader Info */}
+        <div className="mb-3">
+          <p className="text-sm text-gray-600">
+            Uploaded by: {note.userResponse.fullName}
+          </p>
+          <p className="text-sm text-gray-500">
+            Email: {note.userResponse.email}
+          </p>
+        </div>
+
+        {/* File Preview */}
+        {note.fileUrl && (
+          <div className="mb-3">
             {isImage ? (
-              <div className="relative group w-full h-96 rounded-md overflow-hidden">
-                <img
-                  src={post.fileUrl}
-                  alt={post.filename}
-                  className="w-full h-full object-cover transition duration-300 group-hover:brightness-90"
-                />
-                <div className="absolute inset-0.5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition">
-                  <button
-                    className="bg-white/90 text-gray-800 px-4 py-2 rounded flex items-center gap-2 hover:bg-white hover:cursor-pointer"
-                    onClick={() => setIsOpen(true)}
-                  >
-                    <Expand size={18} /> View Fullscreen
-                  </button>
-                </div>
-              </div>
+              <img
+                src={note.fileUrl}
+                alt={note.filename}
+                className="max-h-60 rounded-md border"
+              />
             ) : isPdf ? (
-              <div className="mt-2">
+              <div>
+                <p className="text-sm font-medium text-gray-700 mb-2">
+                  {note.filename}
+                </p>
+                <iframe
+                  src={note.fileUrl}
+                  title={note.filename}
+                  className="w-full h-64 border rounded-md"
+                />
+                <a
+                  href={note.fileUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-600 hover:underline block mt-2"
+                >
+                  Open PDF in new tab
+                </a>
+              </div>
+            ) : (
+              <div>
                 <p className="text-sm font-medium text-gray-700 mb-1">
-                  {post.filename.split("_").slice(1).join("_")}
+                  {note.filename}
                 </p>
                 <a
-                  href={post.fileUrl}
+                  href={note.fileUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-blue-600 hover:underline"
                 >
-                  Open File
+                  Download File
                 </a>
               </div>
-            ) : null}
-          </>
+            )}
+          </div>
         )}
-      </div>
 
-      {isOpen && isImage && (
-        <Lightbox
-          open={isOpen}
-          close={() => setIsOpen(false)}
-          slides={[{ src: post.fileUrl, alt: post.filename }]}
-        />
-      )}
-    </>
+        {/* Date */}
+        <div className="mt-3 text-sm text-gray-500">
+          <p>Uploaded on: {new Date(note.date).toLocaleString()}</p>
+        </div>
+      </div>
+    </div>
   );
 };
 
-export default PostCard;
+export default NoteCard;
