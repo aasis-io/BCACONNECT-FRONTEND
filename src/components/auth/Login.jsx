@@ -68,12 +68,17 @@ const Login = () => {
             "Unknown error";
 
       if (backendError === "Email not verified") {
-        navigate(`/resend-email?email=${encodeURIComponent(formData.email)}`);
+        toast.error("Check and verify your Email First !")
+        setMessage("Check and verify your Email !");
       } else if (status === 400 || status === 401) {
         toast.error(backendError || "Invalid email or password.");
       } else if (status === 404) {
         toast.error(backendError || "User not found.");
-      } else {
+      } else if(backendError === "TokenExpired"){
+             toast.error("Email Verification Link sent ! Check Email");
+             setMessage("Check and verify your Email !");
+      }
+      else {
         toast.error("Something went wrong. Please try again.");
       }
     }
