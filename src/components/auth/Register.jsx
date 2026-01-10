@@ -34,7 +34,7 @@ const Register = () => {
       const response = await axiosInstance.post("/auth/register", formData);
       toast.success(response.data.message || "Registration successful");
       navigate("/login", {
-        state: { message: "Account created. You can now log in." },
+         state: { message: "Check and verify your gmail !" },
       });
     } catch (error) {
       const backendError =
